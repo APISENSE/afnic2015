@@ -1,0 +1,41 @@
+# Site settings
+title: Application Performances Measurements
+title_short: Demo AFNIC 2015
+description: >
+  APISENSE® makes it easy to collect data with crowds of mobile phone sensors.
+  Make sense and innovate on top of real world data feedback, in real time!.
+
+email: contact@apisense.com
+baseurl: "/afnic2015"
+url: "http://apisense.github.io"
+
+apisense: APISENSE
+url_apisense: http://www.apisense.com
+
+bee: Bee
+url_bee: https://play.google.com/apps/testing/com.apisense.bee
+
+twitter_username: APISENSE
+github_username: APISENSE
+googleplus_community_url: https://plus.google.com/communities/110676255059293415882
+
+# Build settings
+markdown: kramdown
+
+# Team
+team:
+  - name: Romain Rouvoy
+    img_url: http://image-uniservice.copainsdavant.com/image/450/1182523319/11103357.jpg
+    twitter_username: RomainRouvoy
+    linkedin_url: http://fr.linkedin.com/in/rouvoy/fr
+  - name: Christophe Ribeiro
+    img_url : https://pbs.twimg.com/profile_images/2612949438/qt2y2gf6jybxn1dm87in_400x400.jpeg
+    twitter_username: chrissom_
+    linkedin_url: https://www.linkedin.com/in/christopheribeiro/en
+  - name: Julien Duribreux
+    img_url: https://pbs.twimg.com/profile_images/378800000842441427/4969812dc42a87e04f9f2840fb97f2e6_400x400.jpeg
+    twitter_username: JulienDuribreux
+  - name: Clive Ferret-Canape
+  - name: Antoine Veuiller
+
+

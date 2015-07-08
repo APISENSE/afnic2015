@@ -1,0 +1,70 @@
+---
+layout: default-fluid
+---
+
+<div class="row" id="wrapper-form">
+	<div class="col-md-12 text-center">
+		<form id="mapFilterForm" class="form-inline" role="form">
+		  <div class="form-group">
+		    <div class="input-group">
+		      	<select class="form-control" type="text" placeholder="User" name="userID" id="userID">
+				  	<option value="" disabled selected>-- Select user --</option>
+				</select>
+		    </div>
+		  </div>
+		  <!-- <div class="form-group">
+		  	<div class="input-group">
+			    <select type="text" placeholder="-- Visualization --" name="mapType" class="form-control">
+					<option value="" disabled>-- Select map --</option>
+					<option value="clusters" selected>Clusters map</option>
+					<option value="heat">Heat map</option>
+				</select>
+			</div>
+		  </div> -->
+		  <div class="form-group">
+		  	<div class="input-group date" id="datetimepicker_from">
+			    <input type="text" placeholder="From (optional)" name="from" value="" class="form-control" readonly>
+			    <span class="input-group-addon"><i class="icon-th glyphicon glyphicon-calendar"></i></span>
+		    </div>
+		  </div>
+		  <div class="form-group">
+		  	<div class="input-group date" id="datetimepicker_to">
+			    <input type="text" placeholder="To (optional)" name="to" value="" class="form-control" readonly>
+			    <span class="input-group-addon"><i class="icon-th glyphicon glyphicon-calendar"></i></span>
+		    </div>
+		  </div>
+		  <input type="submit" name="submit" value="Show" class="btn btn-default hidden-xs"/>
+		  <input type="submit" name="submit" value="Show" class="btn btn-default btn-lg btn-block visible-xs-block"/>
+		</form>
+	</div>
+</div>
+
+<div class="row" id="wrapper-map">
+	<div class="col-md-12 ">
+		<div class="alert alert-info alert-dismissible fade in" role="alert" id="feedback">
+			No data to display yet, try again later! <a href="#" class="close-alert"><i class="fa fa-times"></i></a>
+		</div>
+		<div id="map-canvas">
+		</div>
+	</div>
+</div>
+
+<!-- Date time picker configuration -->
+<script type="text/javascript">
+	$(document).ready(function () {
+        $('#datetimepicker_from').datetimepicker({
+			pickTime: true,
+			// format: 'yyyy-mm-ddThh:ii:ssZ',
+			autoclose: true,
+			todayBtn: true,
+			minuteStep: 5
+		});
+        $('#datetimepicker_to').datetimepicker({
+			pickTime: false,
+			// format: 'yyyy-mm-ddThh:ii:ssZ',
+			autoclose: true,
+			todayBtn: true,
+			minuteStep: 5
+		});
+		 });
+</script>
