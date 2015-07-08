@@ -1,6 +1,4 @@
 $(document).ready(function() {
-	initializeForm();
-
 	var browerHeight = $(window).height(),
 		navHeight = $('.navbar-aps').height(),
 		formHeight = $('#wrapper-form').height(),
@@ -21,7 +19,8 @@ $(document).ready(function() {
 $("#mapFilterForm").submit( function() {
 	// "input:radio[name=mapType]:checked" ).val()
 	initialize();
-	data($("select[name=mapType]").val(), $("select[name=userID]").val(),$("input[name=from]").val(),$("input[name=to]").val());
+	initializeNetworkMap();
+	
 	return false;
  });
 
@@ -29,91 +28,54 @@ $("#cleanMap").click( function() {
 	initialize();
  });
 
-// Helpers
-function createMarker(coordinates) {
-	return new google.maps.Marker({
-		position: coordinates
-	});
-}
-
-/** Not super sexy but it works.. **/
-function queryBuilder(userID, from, to) {
-	var allUsers = false;
-	if (userID === "all") allUsers = true;
-
-	/* Ajust dates if necessary */
-	if (from == "") from = 0; else from = (moment(from).unix() * 1000);
-	if (to == "") to = new Date().getTime(); else to = (moment(to).unix() * 1000);
-
-	/* Build query */
-	if (allUsers)
-		return "from="+from+"&to="+to
-	else
-		return "userID="+userID+"&from="+from+"&to="+to
-}
-
-/** Get data and display... Not perfect but hey.. it's ok **/
-function data(type, userID, from, to) {
-	var query = queryBuilder(userID, from, to);
-
-	$.ajax({
-		type: "GET",
-		url: url,
-		data: query,
-		success: function(data){
-			var markersArray = [];
-			var latlngArray = [];
-			$.each(data, function(i, item) {
-				if(data[i].data.hasOwnProperty('coordinates')) {
-					var lat = data[i].data.coordinates.latitude;
-					var lng = data[i].data.coordinates.longitude;
-					var latlng = new google.maps.LatLng(lat, lng);
-					markersArray.push(createMarker(latlng));
-					latlngArray.push(latlng);
-				}
-			});
-
-			var feedback = document.getElementById("feedback");
-			if (latlngArray.length == 0) {
-				feedback.style.display = "block";
-				return;
-			} else {
-				feedback.style.display = "none";
-				var last = latlngArray.slice(-1)[0];
-				setGoogleMapPosition(last.lat(), last.lng());
-			}
-
-			/** Switch between clusters and heat map */
-			if (type === "clusters")
-				new MarkerClusterer(map, markersArray);
-			else {
-				var pointArray = new google.maps.MVCArray(latlngArray);
-				mapHeat = new google.maps.visualization.HeatmapLayer({
-					data: pointArray
-				});
-				mapHeat.setMap(map);
-			}
-		}
-	});
-}
-
 function setGoogleMapPosition(latitude, longitude) {
 	map.setCenter({lat: latitude, lng: longitude});
 }
 
-/** Retrieve and display all users **/
-function initializeForm() {
+function initializeNetworkMap() {
 	$.ajax({
 		type: "GET",
 		url: url,
 		success: function(data){
-			$("#userID").append('<option value="all" selected>All users</option>');
 			$.each(data, function(i, item) {
-				// Avoid duplicata
-				if ($("#userID option[value='"+data[i].user+"']").length == 0) {
-					if(data[i].hasOwnProperty('user') && data[i].data.hasOwnProperty('coordinates')) {
-						$("#userID").append('<option value="'+data[i].user+'">'+data[i].user+'</option>');
-					}
+				if (data[i].hasOwnProperty('body')) {
+					var info = data[i].body[0];
+					var latitude = info.latitude;
+                	var longitude = info.longitude;
+            
+                	var scan_url = info.scan_url;
+	                var scan_ping = info.scan_ping;
+	                var scan_ttl = info.scan_ttl;
+	                var scan_trace = info.scan_trace;
+	                
+	                var download_url = info.download_url;
+	                var download_speed_mbps = info.download_speed_mbps;
+	                var download_time_seconds = info.download_time_seconds;
+	                var download_size_bytes = info.download_size_bytes;
+
+					setGoogleMapPosition(info.latitude,info.longitude);
+
+					var myLatlng = new google.maps.LatLng(info.latitude,info.longitude);
+
+					var contentString =
+						"<h4>Geolocalisation</h4><p>Latitude : " + latitude + "<br/>Longitude : " + longitude + "</p>" +
+						"<h4>Scan</h4><p>Target : " + scan_url + "<br/>Latency : " + scan_ping + " ms<br/>TTL max : " + scan_ttl + "</p>" +
+						"<h4>Download Stats</h4><p>Target : " + download_url + "<br/>Speed : " + download_speed_mbps + " mbps<br/>File size : " + download_size_bytes + " bytes<br/>Time : " + download_time_seconds + " seconds</p>";
+
+					var infowindow = new google.maps.InfoWindow({
+					  content: contentString
+					});
+
+					var marker = new google.maps.Marker({
+					  position: myLatlng,
+					  map: map,
+					  title: 'Performances monitoring'
+					});
+					google.maps.event.addListener(marker, 'click', function() {
+						infowindow.open(map,marker);
+					});
+
+					google.maps.event.addDomListener(window, 'load', initialize);
 				}
 			});
 		}
