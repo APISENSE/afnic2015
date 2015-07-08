@@ -1,4 +1,4 @@
-var url = "http://apisense.io/api/v1/589WAYV6DbtzbNk9e3OE/data";
+var url = "http://apisense.io/api/v1/rdAkrYmDBnc0ke4nwoPP/data";
 
 var map;
 var mapClustered;
@@ -40,7 +40,7 @@ function GeolocControl(controlDiv, map) {
   controlText.innerHTML = '<i class="fa fa-location-arrow"></i>';
   controlUI.appendChild(controlText);
 
-  // Setup the click event listeners: simply set the map to bordeaux
+  // Setup the click event listeners: simply set the map to Paris
   google.maps.event.addDomListener(controlUI, 'click', function() {
 	if(navigator.geolocation) {
 	    navigator.geolocation.getCurrentPosition(function(position) {
