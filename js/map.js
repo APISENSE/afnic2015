@@ -3,6 +3,7 @@ var url = "http://apisense.io/api/v1/rdAkrYmDBnc0ke4nwoPP/data";
 var map;
 var mapClustered;
 var mapHeat;
+var lastInfoWindow;
 
 var bordeaux = {
 	lat: 44.8333,
@@ -86,8 +87,9 @@ function handleNoGeolocation(errorFlag) {
  * Initialize Google Maps
  */
 function initialize() {
-	var mapOptions = {
-		zoom: 12,
+	
+  var mapOptions = {
+		zoom: 7,
 		scrollwheel: false,
 		center: new google.maps.LatLng(paris.lat, paris.lng)
 	};
@@ -95,11 +97,15 @@ function initialize() {
 	map = new google.maps.Map(document.getElementById('map-canvas'), mapOptions);
 	mapClustered = new MarkerClusterer(map);
 
-  	var homeControlDiv = document.createElement('div');
-  	var homeControl = new GeolocControl(homeControlDiv, map);
+  var homeControlDiv = document.createElement('div');
+  var homeControl = new GeolocControl(homeControlDiv, map);
 
-  	homeControlDiv.index = 1;
-  	map.controls[google.maps.ControlPosition.LEFT_TOP].push(homeControlDiv);
+  homeControlDiv.index = 1;
+  map.controls[google.maps.ControlPosition.LEFT_TOP].push(homeControlDiv);
+
+  google.maps.event.addListener(map, 'click', function() {
+    if (lastInfoWindow) lastInfoWindow.close();
+  });
 }
 
 /**
