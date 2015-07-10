@@ -1,4 +1,4 @@
-var url = "http://apisense.io/api/v1/JPLqw5va89iB6V9oQ4yV/data";
+var url = "http://apisense.io/api/v1/A864wgD8QPTAy5P5nOJW/data";
 
 var map;
 var mapClustered;
@@ -89,7 +89,7 @@ function handleNoGeolocation(errorFlag) {
 function initialize() {
 	
   var mapOptions = {
-		zoom: 7,
+		zoom: 5,
 		scrollwheel: false,
 		center: new google.maps.LatLng(paris.lat, paris.lng)
 	};

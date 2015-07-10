@@ -42,7 +42,7 @@ function createRouterMarker(coordinates) {
 }
 
 function getRandomColor() {
-    var letters = '0123456789ABCDEF'.split('');
+    var letters = '0123456789AB'.split('');
     var color = '#';
     for (var i = 0; i < 6; i++ ) {
         color += letters[Math.floor(Math.random() * 16)];
@@ -50,7 +50,7 @@ function getRandomColor() {
     return color;
 }
 
-function drawRequestsPath(coordinates) {
+function drawRequestsPath(coordinates, url) {
 	var flightPath = new google.maps.Polyline({
 		path: coordinates,
 		geodesic: true,
@@ -58,6 +58,7 @@ function drawRequestsPath(coordinates) {
 		strokeOpacity: 0.8,
 		strokeWeight: 1
 	});
+
 	flightPath.setMap(map);
 }
 
@@ -96,7 +97,6 @@ function initializeNetworkMap() {
 					}
 
 					var trace_output = "";
-					var oldttl=-1; // to be removed
 
 					var requestsPlanCoordinates = new Array();
 					$.each(scan_trace, function(i, item) {
@@ -104,25 +104,21 @@ function initializeNetworkMap() {
 						var ping = scan_trace[i].ping;
 						var ttl = scan_trace[i].ttl;
 
-						if (oldttl != ttl) { 
-							trace_output += "["+ttl+"] " + ip + " (" + ping + "ms)<br/>";
+						trace_output += "["+ttl+"] " + ip + " (" + ping + "ms)<br/>";
 
-							oldttl = ttl;
+						$.ajax({
+							url: "http://api.hostip.info/get_json.php?ip="+ip+"&position=true",
+							dataType: 'json',
+							async: false,
+							success: function(data) {
+								var latlng = new google.maps.LatLng(data.lat, data.lng);
 
-							$.ajax({
-								url: "http://api.hostip.info/get_json.php?ip="+ip+"&position=true",
-								dataType: 'json',
-								async: false,
-								success: function(data) {
-									var latlng = new google.maps.LatLng(data.lat, data.lng);
-
-									if (latlng.lat() != 0 && latlng.lng() != 0) {
-										requestsPlanCoordinates.push(latlng);
-										createRouterMarker(latlng);
-									}
+								if (latlng.lat() != 0 && latlng.lng() != 0) {
+									requestsPlanCoordinates.push(latlng);
+									createRouterMarker(latlng, scan_url);
 								}
-							});
-						}
+							}
+						});
 					});
 					drawRequestsPath(requestsPlanCoordinates);
 
