@@ -32,6 +32,35 @@ function setGoogleMapPosition(latitude, longitude) {
 	map.setCenter({lat: latitude, lng: longitude});
 }
 
+function createRouterMarker(coordinates) {
+	return new google.maps.Marker({
+		position: coordinates,
+		map: map,
+		icon: "http://icons.iconarchive.com/icons/fatcow/farm-fresh/32/router-icon.png",
+		title: 'Router'
+	});
+}
+
+function getRandomColor() {
+    var letters = '0123456789ABCDEF'.split('');
+    var color = '#';
+    for (var i = 0; i < 6; i++ ) {
+        color += letters[Math.floor(Math.random() * 16)];
+    }
+    return color;
+}
+
+function drawRequestsPath(coordinates) {
+	var flightPath = new google.maps.Polyline({
+		path: coordinates,
+		geodesic: true,
+		strokeColor: getRandomColor(),
+		strokeOpacity: 0.8,
+		strokeWeight: 1
+	});
+	flightPath.setMap(map);
+}
+
 function initializeNetworkMap() {
 	$.ajax({
 		type: "GET",
@@ -66,10 +95,41 @@ function initializeNetworkMap() {
 						meta_time = data[i].metadata.timestamp;
 					}
 
+					var trace_output = "";
+					var oldttl=-1; // to be removed
+
+					var requestsPlanCoordinates = new Array();
+					$.each(scan_trace, function(i, item) {
+						var ip = scan_trace[i].ip;
+						var ping = scan_trace[i].ping;
+						var ttl = scan_trace[i].ttl;
+
+						if (oldttl != ttl) { 
+							trace_output += "["+ttl+"] " + ip + " (" + ping + "ms)<br/>";
+
+							oldttl = ttl;
+
+							$.ajax({
+								url: "http://api.hostip.info/get_json.php?ip="+ip+"&position=true",
+								dataType: 'json',
+								async: false,
+								success: function(data) {
+									var latlng = new google.maps.LatLng(data.lat, data.lng);
+
+									if (latlng.lat() != 0 && latlng.lng() != 0) {
+										requestsPlanCoordinates.push(latlng);
+										createRouterMarker(latlng);
+									}
+								}
+							});
+						}
+					});
+					drawRequestsPath(requestsPlanCoordinates);
+
 					var contentString =
 						"<h4>Metadata</h4><p>Device OS : " + meta_os + "<br/>At : " + meta_time + "</p>" +
 						"<h4>Geolocalisation</h4><p>Latitude : " + latitude + "<br/>Longitude : " + longitude + "</p>" +
-						"<h4>Scan</h4><p>Target : " + scan_url + "<br/>Latency : " + scan_ping + " ms<br/>TTL max : " + scan_ttl + "</p>" +
+						"<h4>Scan</h4><p>Target : " + scan_url + "<br/>Latency : " + scan_ping + " ms<br/>TTL max : " + scan_ttl + "<br/>Traceroute :<br/>" + trace_output +"</p>" +
 						"<h4>Download Stats</h4><p>Target : " + download_url + "<br/>Speed : " + download_speed_mbps + " mbps<br/>File size : " + download_size_bytes + " bytes<br/>Time : " + download_time_seconds + " seconds</p>";
 
 					var infowindow = new google.maps.InfoWindow({
