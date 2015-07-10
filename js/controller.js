@@ -89,6 +89,7 @@ function initializeNetworkMap() {
 
 					var trace_output = "";
 					var first_router;
+
 					var requestsPlanCoordinates = new Array();
 					$.each(scan_trace, function(i, item) {
 						var ip = scan_trace[i].ip;
@@ -103,16 +104,16 @@ function initializeNetworkMap() {
 							async: false,
 							success: function(data) {
 								var latlng = new google.maps.LatLng(data.lat, data.lng);
-
 								if (latlng.lat() != 0 && latlng.lng() != 0) {
 									requestsPlanCoordinates.push(latlng);
 									createRouterMarker(latlng);
+
 									if (!first_router) { first_router = latlng ; }
 								}
 							}
 						});
 					});
-					drawPathBetween(myLatlng, first_router);
+					if (first_router) drawPathBetween(myLatlng, first_router);
 					drawRequestsPath(requestsPlanCoordinates);
 
 					var marker = new google.maps.Marker({
