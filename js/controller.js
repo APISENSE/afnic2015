@@ -41,22 +41,25 @@ function createRouterMarker(coordinates) {
 	});
 }
 
-function getRandomColor() {
-    var letters = '0123456789ABCD'.split('');
-    var color = '#';
-    for (var i = 0; i < 6; i++ ) {
-        color += letters[Math.floor(Math.random() * 16)];
-    }
-    return color;
-}
-
-function drawRequestsPath(coordinates, url) {
+function drawRequestsPath(coordinates) {
 	var flightPath = new google.maps.Polyline({
 		path: coordinates,
 		geodesic: true,
-		strokeColor: getRandomColor(),
-		strokeOpacity: 0.5,
-		strokeWeight: 2
+		strokeColor: "#000000",
+		strokeOpacity: 0.6,
+		strokeWeight: 3
+	});
+
+	flightPath.setMap(map);
+}
+
+function drawPathBetween(start, end) {
+	var flightPath = new google.maps.Polyline({
+		path: [start, end],
+		geodesic: true,
+		strokeColor: "#000000",
+		strokeOpacity: 0.6,
+		strokeWeight: 3
 	});
 
 	flightPath.setMap(map);
@@ -70,29 +73,22 @@ function initializeNetworkMap() {
 			$.each(data, function(i, item) {
 				if (data[i].hasOwnProperty('body')) {
 					var info = data[i].body[0];
-					var latitude = info.latitude;
-                	var longitude = info.longitude;
-            
-                	var scan_url = info.scan_url;
-	                var scan_ping = info.scan_ping;
-	                var scan_ttl = info.scan_ttl;
-	                var scan_trace = info.scan_trace;
+					var latitude = info.latitude; var longitude = info.longitude; 
+                	var scan_url = info.scan_url; var scan_ping = info.scan_ping;
+	                var scan_ttl = info.scan_ttl; var scan_trace = info.scan_trace;
 
 					setGoogleMapPosition(info.latitude,info.longitude);
 
 					var myLatlng = new google.maps.LatLng(info.latitude,info.longitude);
 
-					var meta_os = "N/A";
-					var meta_time = "N/A";
-
-					// Metadata
+					var meta_os = "N/A"; var meta_time = "N/A"; 
 					if (data[i].hasOwnProperty('metadata')) {
 						meta_os = data[i].metadata.device;
 						meta_time = data[i].metadata.timestamp;
 					}
 
 					var trace_output = "";
-
+					var first_router;
 					var requestsPlanCoordinates = new Array();
 					$.each(scan_trace, function(i, item) {
 						var ip = scan_trace[i].ip;
@@ -110,12 +106,20 @@ function initializeNetworkMap() {
 
 								if (latlng.lat() != 0 && latlng.lng() != 0) {
 									requestsPlanCoordinates.push(latlng);
-									createRouterMarker(latlng, scan_url);
+									createRouterMarker(latlng);
+									if (!first_router) { first_router = latlng ; }
 								}
 							}
 						});
 					});
+					drawPathBetween(myLatlng, first_router);
 					drawRequestsPath(requestsPlanCoordinates);
+
+					var marker = new google.maps.Marker({
+						position: myLatlng,
+						map: map,
+						title: 'Performances monitoring'
+					});
 
 					var contentString =
 						"<h4>Metadata</h4><p>Device OS : " + meta_os + "<br/>At : " + meta_time + "</p>" +
@@ -124,12 +128,6 @@ function initializeNetworkMap() {
 
 					var infowindow = new google.maps.InfoWindow({
 					  content: contentString
-					});
-
-					var marker = new google.maps.Marker({
-					  position: myLatlng,
-					  map: map,
-					  title: 'Performances monitoring'
 					});
 
 					google.maps.event.addListener(marker, 'click', function() {
