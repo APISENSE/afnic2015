@@ -1,6 +1,8 @@
+// Configuration
 var strokeWeight = 2;
 var strokeOpacity = 0.6;
 
+// Display
 $(document).ready(function() {
 	var browerHeight = $(window).height(),
 		navHeight = $('.navbar-aps').height(),
@@ -27,28 +29,41 @@ $("#mapFilterForm").submit( function() {
 	return false;
  });
 
+/* 
+ * Set google map position to (latitude, longitude)
+ */
 function setGoogleMapPosition(latitude, longitude) {
 	map.setCenter({lat: latitude, lng: longitude});
 }
 
+/* 
+ * Create a Router marker on the map
+ */
 function createRouterMarker(coordinates) {
 	return new google.maps.Marker({
 		position: coordinates,
 		map: map,
-		icon: "http://icons.iconarchive.com/icons/fatcow/farm-fresh/32/router-icon.png",
+		icon: "https://cdn2.iconfinder.com/data/icons/gnomeicontheme/32x32/places/gnome-fs-server.png", // Router
 		title: 'Router'
 	});
 }
 
+/* 
+ * Create a server marker on the map
+ */
 function createFinalRouterMarker(coordinates) {
 	return new google.maps.Marker({
 		position: coordinates,
 		map: map,
-		icon: "http://icdn.pro/images/fr/e/t/etoile-icone-9843-96.png",
+		icon: "https://cdn3.iconfinder.com/data/icons/fatcow/32x32/server_lightning.png", // Star
 		title: 'Final server'
 	});
 }
 
+
+/* 
+ * Draw a path between each LatLng object in coordinates array
+ */
 function drawRequestsPath(coordinates) {
 	var flightPath = new google.maps.Polyline({
 		path: coordinates,
@@ -61,6 +76,9 @@ function drawRequestsPath(coordinates) {
 	flightPath.setMap(map);
 }
 
+/* 
+ * Draw link between start and end LatLng
+ */
 function drawPathBetween(start, end) {
 	var flightPath = new google.maps.Polyline({
 		path: [start, end],
@@ -73,6 +91,9 @@ function drawPathBetween(start, end) {
 	flightPath.setMap(map);
 }
 
+/* 
+ * Display data on the map
+ */
 function initializeNetworkMap() {
 	$.ajax({
 		type: "GET",
@@ -101,8 +122,22 @@ function initializeNetworkMap() {
 					var trace_output = "";
 					var first_router;
 					var requestsPlanCoordinates = [];
+					var numberOfEntries = scan_trace.length;
+
+					var addCoordinate = function(coordinates, isLast) {
+						if (coordinates.lat() != 0 && coordinates.lng() != 0) {
+							requestsPlanCoordinates.push(coordinates);
+							if (isLast) {
+								createFinalRouterMarker(coordinates);
+							} else {
+								createRouterMarker(coordinates);
+							}
+							if (!first_router) { first_router = coordinates ; }
+						}
+					}
 
 					$.each(scan_trace, function(i, item) { // Parse traceroute JSON
+
 						var ip = scan_trace[i].ip;
 						var ping = scan_trace[i].ping;
 						var ttl = scan_trace[i].ttl;
@@ -111,10 +146,7 @@ function initializeNetworkMap() {
 
 						// Search inside IP's location we already got
 						if (ip in IPLocationAssoc) {
-							if (IPLocationAssoc[ip].lat() != 0 && IPLocationAssoc[ip].lng() != 0) {
-								requestsPlanCoordinates.push(IPLocationAssoc[ip]);
-								createRouterMarker(IPLocationAssoc[ip]);
-							}
+							addCoordinate(IPLocationAssoc[ip], (i == numberOfEntries));
 						} else {
 							$.ajax({
 								url: "http://api.hostip.info/get_json.php?ip="+ip+"&position=true",
@@ -123,12 +155,7 @@ function initializeNetworkMap() {
 								success: function(data) {
 									var latlng = new google.maps.LatLng(data.lat, data.lng);
 									IPLocationAssoc[ip] = latlng;
-									if (latlng.lat() != 0 && latlng.lng() != 0) {
-										requestsPlanCoordinates.push(latlng);
-										createRouterMarker(latlng);
-										
-										if (!first_router) { first_router = latlng ; }
-									}
+									addCoordinate(latlng, (i == numberOfEntries - 1));
 								}
 							});
 						}
