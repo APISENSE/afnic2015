@@ -1,3 +1,6 @@
+var strokeWeight = 2;
+var strokeOpacity = 0.6;
+
 $(document).ready(function() {
 	var browerHeight = $(window).height(),
 		navHeight = $('.navbar-aps').height(),
@@ -37,13 +40,22 @@ function createRouterMarker(coordinates) {
 	});
 }
 
+function createFinalRouterMarker(coordinates) {
+	return new google.maps.Marker({
+		position: coordinates,
+		map: map,
+		icon: "http://icdn.pro/images/fr/e/t/etoile-icone-9843-96.png",
+		title: 'Final server'
+	});
+}
+
 function drawRequestsPath(coordinates) {
 	var flightPath = new google.maps.Polyline({
 		path: coordinates,
 		geodesic: true,
 		strokeColor: "#000000",
-		strokeOpacity: 0.6,
-		strokeWeight: 2
+		strokeOpacity: strokeOpacity,
+		strokeWeight: strokeWeight
 	});
 
 	flightPath.setMap(map);
@@ -54,8 +66,8 @@ function drawPathBetween(start, end) {
 		path: [start, end],
 		geodesic: true,
 		strokeColor: "#000000",
-		strokeOpacity: 0.6,
-		strokeWeight: 2
+		strokeOpacity: strokeOpacity,
+		strokeWeight: strokeWeight
 	});
 
 	flightPath.setMap(map);
@@ -88,7 +100,7 @@ function initializeNetworkMap() {
 
 					var trace_output = "";
 					var first_router;
-					var requestsPlanCoordinates = new Array();
+					var requestsPlanCoordinates = [];
 
 					$.each(scan_trace, function(i, item) { // Parse traceroute JSON
 						var ip = scan_trace[i].ip;
@@ -99,7 +111,7 @@ function initializeNetworkMap() {
 
 						// Search inside IP's location we already got
 						if (ip in IPLocationAssoc) {
-							if (IPLocationAssoc[ip] != 0 && IPLocationAssoc[ip] != 0) {
+							if (IPLocationAssoc[ip].lat() != 0 && IPLocationAssoc[ip].lng() != 0) {
 								requestsPlanCoordinates.push(IPLocationAssoc[ip]);
 								createRouterMarker(IPLocationAssoc[ip]);
 							}
