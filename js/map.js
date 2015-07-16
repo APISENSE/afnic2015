@@ -1,8 +1,6 @@
 var url = "http://apisense.io/api/v1/lQwJQPVzevC9aXxOvVqO/data";
 
 var map;
-var mapClustered;
-var mapHeat;
 var lastInfoWindow;
 
 var bordeaux = {
@@ -95,7 +93,6 @@ function initialize() {
 	};
 
 	map = new google.maps.Map(document.getElementById('map-canvas'), mapOptions);
-	mapClustered = new MarkerClusterer(map);
 
   var homeControlDiv = document.createElement('div');
   var homeControl = new GeolocControl(homeControlDiv, map);
