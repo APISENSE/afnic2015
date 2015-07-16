@@ -89,7 +89,7 @@ function handleNoGeolocation(errorFlag) {
 function initialize() {
 	
   var mapOptions = {
-		zoom: 5,
+		zoom: 4,
 		scrollwheel: false,
 		center: new google.maps.LatLng(paris.lat, paris.lng)
 	};

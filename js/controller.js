@@ -24,10 +24,6 @@ $("#mapFilterForm").submit( function() {
 	return false;
  });
 
-$("#cleanMap").click( function() {
-	initialize();
- });
-
 function setGoogleMapPosition(latitude, longitude) {
 	map.setCenter({lat: latitude, lng: longitude});
 }
@@ -47,7 +43,7 @@ function drawRequestsPath(coordinates) {
 		geodesic: true,
 		strokeColor: "#000000",
 		strokeOpacity: 0.6,
-		strokeWeight: 3
+		strokeWeight: 2
 	});
 
 	flightPath.setMap(map);
@@ -59,7 +55,7 @@ function drawPathBetween(start, end) {
 		geodesic: true,
 		strokeColor: "#000000",
 		strokeOpacity: 0.6,
-		strokeWeight: 3
+		strokeWeight: 2
 	});
 
 	flightPath.setMap(map);
@@ -70,18 +66,21 @@ function initializeNetworkMap() {
 		type: "GET",
 		url: url,
 		success: function(data){
+
+			var IPLocationAssoc = {}; // Keep a trace of IP's location
+
 			$.each(data, function(i, item) {
-				if (data[i].hasOwnProperty('body')) {
+				if (data[i].hasOwnProperty('body')) { // Parse JSON
 					var info = data[i].body[0];
 					var latitude = info.latitude; var longitude = info.longitude; 
                 	var scan_url = info.scan_url; var scan_ping = info.scan_ping;
 	                var scan_ttl = info.scan_ttl; var scan_trace = info.scan_trace;
 
-					setGoogleMapPosition(info.latitude,info.longitude);
+					setGoogleMapPosition(info.latitude,info.longitude); // Set Google map center position
 
-					var myLatlng = new google.maps.LatLng(info.latitude,info.longitude);
+					var myLatlng = new google.maps.LatLng(info.latitude,info.longitude); // First location
 
-					var meta_os = "N/A"; var meta_time = "N/A"; 
+					var meta_os = "N/A"; var meta_time = "N/A"; // Parse metadata
 					if (data[i].hasOwnProperty('metadata')) {
 						meta_os = data[i].metadata.device;
 						meta_time = data[i].metadata.timestamp;
@@ -89,33 +88,45 @@ function initializeNetworkMap() {
 
 					var trace_output = "";
 					var first_router;
-
 					var requestsPlanCoordinates = new Array();
-					$.each(scan_trace, function(i, item) {
+
+					$.each(scan_trace, function(i, item) { // Parse traceroute JSON
 						var ip = scan_trace[i].ip;
 						var ping = scan_trace[i].ping;
 						var ttl = scan_trace[i].ttl;
 
-						trace_output += "["+ttl+"] " + ip + " (" + ping + "ms)<br/>";
+						trace_output += "["+ttl+"] " + ip + " (" + ping + "ms)<br/>"; // Build output
 
-						$.ajax({
-							url: "http://api.hostip.info/get_json.php?ip="+ip+"&position=true",
-							dataType: 'json',
-							async: false,
-							success: function(data) {
-								var latlng = new google.maps.LatLng(data.lat, data.lng);
-								if (latlng.lat() != 0 && latlng.lng() != 0) {
-									requestsPlanCoordinates.push(latlng);
-									createRouterMarker(latlng);
-
-									if (!first_router) { first_router = latlng ; }
-								}
+						// Search inside IP's location we already got
+						if (ip in IPLocationAssoc) {
+							if (IPLocationAssoc[ip] != 0 && IPLocationAssoc[ip] != 0) {
+								requestsPlanCoordinates.push(IPLocationAssoc[ip]);
+								createRouterMarker(IPLocationAssoc[ip]);
 							}
-						});
+						} else {
+							$.ajax({
+								url: "http://api.hostip.info/get_json.php?ip="+ip+"&position=true",
+								dataType: 'json',
+								async: false, // <- This might be a problem
+								success: function(data) {
+									var latlng = new google.maps.LatLng(data.lat, data.lng);
+									IPLocationAssoc[ip] = latlng;
+									if (latlng.lat() != 0 && latlng.lng() != 0) {
+										requestsPlanCoordinates.push(latlng);
+										createRouterMarker(latlng);
+										
+										if (!first_router) { first_router = latlng ; }
+									}
+								}
+							});
+						}
 					});
+
+					// Draw first link between position and first router found
 					if (first_router) drawPathBetween(myLatlng, first_router);
 					drawRequestsPath(requestsPlanCoordinates);
 
+					// Build current location marker and infoWindow associated
 					var marker = new google.maps.Marker({
 						position: myLatlng,
 						map: map,
