@@ -1,6 +1,6 @@
 // Configuration
 var strokeWeight = 2;
-var strokeOpacity = 0.6;
+var strokeOpacity = 0.3;
 
 // Display
 $(document).ready(function() {
@@ -97,7 +97,7 @@ function drawPathBetween(start, end) {
 function parseJSON(data, callback) {
 	var IPLocationAssoc = {}; // Keep a trace of IP's location
 	var markersToClusterize = [];
-	
+
 	$.each(data, function(i, item) {
 
 		if (data[i].hasOwnProperty('body')) { // Parse JSON
@@ -129,6 +129,7 @@ function parseJSON(data, callback) {
 				}
 			}
 
+			var calls = [];
 			$.each(scan_trace, function(i, item) { // Parse traceroute JSON
 				var ip = scan_trace[i].ip;
 				var ping = scan_trace[i].ping;
@@ -137,25 +138,49 @@ function parseJSON(data, callback) {
 				trace_output += "["+ttl+"] " + ip + " (" + ping + "ms)<br/>"; // Build output
 
 				// Search inside IP's location we already got
-				if (ip in IPLocationAssoc) {
-					addCoordinate(IPLocationAssoc[ip], (i == numberOfEntries));
-				} else {
-					$.ajax({
-						url: "http://api.hostip.info/get_json.php?ip="+ip+"&position=true",
-						dataType: 'json',
-						async: false, // <- This might be a problem
-						success: function(data) {
-							var latlng = new google.maps.LatLng(data.lat, data.lng);
+				if (ip != "*") {
+					if (ip in IPLocationAssoc) {
+						addCoordinate(IPLocationAssoc[ip], (i == numberOfEntries));
+					} else {
+						calls.push($.getJSON("http://freegeoip.net/json/"+ip, function(data) {
+							var latlng = new google.maps.LatLng(data.latitude, data.longitude);
 							IPLocationAssoc[ip] = latlng;
 							addCoordinate(latlng, (i == numberOfEntries - 1));
-						}
-					});
+						}));
+
+						/* $.ajax({
+							url: "http://freegeoip.net/json/"+ip,
+							type: "GET",
+							dataType: 'json',
+							async: false, // <- This might be a problem
+							success: function(data) {
+								var latlng = new google.maps.LatLng(data.latitude, data.longitude);
+								IPLocationAssoc[ip] = latlng;
+								addCoordinate(latlng, (i == numberOfEntries - 1));
+							}
+						}); */
+
+						/* $.ajax({
+							url: "http://api.hostip.info/get_json.php?ip="+ip+"&position=true",
+							type: "GET",
+							dataType: 'json',
+							async: false, // <- This might be a problem
+							success: function(data) {
+								var latlng = new google.maps.LatLng(data.lat, data.lng);
+								// var latlng = new google.maps.LatLng(data.latitude, data.longitude);
+								IPLocationAssoc[ip] = latlng;
+								addCoordinate(latlng, (i == numberOfEntries - 1));
+							}
+						}); */
+					}
 				}
 			});
 
 			// Draw first link between position and first router found
-			if (first_router) drawPathBetween(myLatlng, first_router);
-			drawRequestsPath(requestsPlanCoordinates);
+			$.when.apply($, calls).then(function() {
+				if (first_router) drawPathBetween(myLatlng, first_router);
+				drawRequestsPath(requestsPlanCoordinates);
+		    });
 
 			// Build current location marker and infoWindow associated
 			var marker = new google.maps.Marker({
@@ -195,7 +220,8 @@ function initializeNetworkMap() {
 		url: url,
 		success: function(data){
 			parseJSON(data, function(markersToClusterize) {
-				new MarkerClusterer(map, markersToClusterize);				
+				new MarkerClusterer(map, markersToClusterize); // Create cluster map
+				// var oms = new OverlappingMarkerSpiderfier(map);			
 			});
 		}
 	});

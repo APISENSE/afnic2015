@@ -1,4 +1,4 @@
-var url = "http://apisense.io/api/v1/lQwJQPVzevC9aXxOvVqO/data";
+var url = "http://apisense.io/api/v1/oPNPvJbwJ5Sv9qrBGZJ1/data";
 
 var map;
 var lastInfoWindow;
@@ -88,7 +88,7 @@ function initialize() {
 	
   var mapOptions = {
 		zoom: 4,
-		scrollwheel: false,
+		scrollwheel: true,
 		center: new google.maps.LatLng(paris.lat, paris.lng)
 	};
 
