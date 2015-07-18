@@ -91,12 +91,30 @@ function drawPathBetween(start, end) {
 	flightPath.setMap(map);
 }
 
+
+function displayStats(traces, routers, ping) {
+	$('#nb-of-traces').text(traces);
+	$('#nb-of-routers').text(routers);
+	$('#avg-ping').text(ping);
+}
+
 /*
  *
  */
 function parseJSON(data, callback) {
+
+	var numberOfTraces = data.length;
+	var numberOfRouters = 0;
+	var avgPing = 0;
+
 	var IPLocationAssoc = {}; // Keep a trace of IP's location
 	var markersToClusterize = [];
+
+	if (data.length == 0) {
+		document.getElementById("feedback").style.display = "block";
+	} else {
+		document.getElementById("feedback").style.display = "none";
+	}
 
 	$.each(data, function(i, item) {
 
@@ -135,6 +153,8 @@ function parseJSON(data, callback) {
 				var ping = scan_trace[i].ping;
 				var ttl = scan_trace[i].ttl;
 
+				avgPing += ping;
+
 				trace_output += "["+ttl+"] " + ip + " (" + ping + "ms)<br/>"; // Build output
 
 				// Search inside IP's location we already got
@@ -146,32 +166,10 @@ function parseJSON(data, callback) {
 							var latlng = new google.maps.LatLng(data.latitude, data.longitude);
 							IPLocationAssoc[ip] = latlng;
 							addCoordinate(latlng, (i == numberOfEntries - 1));
+							if (latlng.lat() != 0 && latlng.lng() != 0) {
+								numberOfRouters += 1;
+							}
 						}));
-
-						/* $.ajax({
-							url: "http://freegeoip.net/json/"+ip,
-							type: "GET",
-							dataType: 'json',
-							async: false, // <- This might be a problem
-							success: function(data) {
-								var latlng = new google.maps.LatLng(data.latitude, data.longitude);
-								IPLocationAssoc[ip] = latlng;
-								addCoordinate(latlng, (i == numberOfEntries - 1));
-							}
-						}); */
-
-						/* $.ajax({
-							url: "http://api.hostip.info/get_json.php?ip="+ip+"&position=true",
-							type: "GET",
-							dataType: 'json',
-							async: false, // <- This might be a problem
-							success: function(data) {
-								var latlng = new google.maps.LatLng(data.lat, data.lng);
-								// var latlng = new google.maps.LatLng(data.latitude, data.longitude);
-								IPLocationAssoc[ip] = latlng;
-								addCoordinate(latlng, (i == numberOfEntries - 1));
-							}
-						}); */
 					}
 				}
 			});
@@ -180,6 +178,7 @@ function parseJSON(data, callback) {
 			$.when.apply($, calls).then(function() {
 				if (first_router) drawPathBetween(myLatlng, first_router);
 				drawRequestsPath(requestsPlanCoordinates);
+				displayStats(numberOfTraces, numberOfRouters, Math.round(avgPing / numberOfRouters));
 		    });
 
 			// Build current location marker and infoWindow associated
@@ -220,7 +219,8 @@ function initializeNetworkMap() {
 		url: url,
 		success: function(data){
 			parseJSON(data, function(markersToClusterize) {
-				new MarkerClusterer(map, markersToClusterize); // Create cluster map
+				var mcOptions = {gridSize: 50, maxZoom: 7};
+				new MarkerClusterer(map, markersToClusterize, mcOptions); // Create cluster map
 				// var oms = new OverlappingMarkerSpiderfier(map);			
 			});
 		}
