@@ -25,7 +25,7 @@ $("#mapFilterForm").submit( function() {
 	// "input:radio[name=mapType]:checked" ).val()
 	initialize();
 	initializeNetworkMap();
-	
+	$('#advanced-btn').removeClass("disabled");
 	return false;
  });
 
