@@ -112,6 +112,7 @@ function parseJSON(data, callback) {
 	var callsMade = 0;
 	var callsDone = 0;
 	document.getElementsByClassName("progress")[0].style.display = "block";
+	$('.progress-bar').css('width', '0%').attr('aria-valuenow', 0).text('0%'); 
 
 	var IPLocationAssoc = {}; // Keep a trace of IP's location
 	var markersToClusterize = [];
@@ -180,10 +181,7 @@ function parseJSON(data, callback) {
 							// Loading feedback
 							callsDone += 1;
 							var currentPercentage = Math.round((callsDone / callsMade) * 100);
-							var loadingBar = document.getElementById("loading-data");
-							loadingBar.style.display = "block";
-							$('.progress-bar').css('width', currentPercentage+'%').attr('aria-valuenow', currentPercentage); 
-							loadingBar.innerHTML = currentPercentage + "%";
+							$('.progress-bar').css('width', currentPercentage+'%').attr('aria-valuenow', currentPercentage).text(currentPercentage+'%'); 
 							if (currentPercentage == 100) {
 								setTimeout(function() {
 								 $(document.getElementsByClassName("progress")[0]).fadeOut("slow");
