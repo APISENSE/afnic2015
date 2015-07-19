@@ -107,6 +107,10 @@ i.grey { color: #CCC; }
 	display: none;
 }
 
+p {
+	margin: 5px;
+}
+
 /* MAP */
 
 #wrapper-form {
@@ -136,48 +140,3 @@ i.grey { color: #CCC; }
 	top: 0px;
 	right: 10px;
 }
-
-/*
-.gm-style img { max-width: none; }
-.gm-style label { width: auto; display: inline; }
-
-.logo {
-	width: 40px;
-	margin-bottom: 10px;
-	vertical-align:middle;
-}
-
-label {
-	margin: 0 5px;
-	font-weight: normal;
-}
-
-.form-control {
-	display: inline-block;
-	width: auto;
-	margin: 5px 0px;
-}
-
-.input-group .form-control {
-    margin: 0px !important;
-    width: 200px;
-    display: inline-block;
-}
-
-/* Buttons style */
-
-#cleanMap.form-control { /* Clean map */
-	float:right;
-	margin-right: 5px;
-	background: #ff4d4d;
-	color: white;
-}
-
-.form-control[type=submit]{ /* Send */
-	background: #6EB43F;
-	color: white;
-}
-
-#resetForm.form-control { /* Reset */
-	margin-right: 5px;
-}*/

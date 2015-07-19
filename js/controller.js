@@ -92,6 +92,16 @@ function drawPathBetween(start, end) {
 }
 
 
+function showMap() {
+	$("#map-view").css("display","block");
+	$("#advanced-view").css("display","none");
+}
+
+function showAdvanced() {
+	$("#map-view").css("display","none");
+	$("#advanced-view").css("display","block");
+}
+
 function displayStats(traces, routers, ping) {
 	$('#nb-of-traces').text(traces);
 	$('#nb-of-routers').text(routers);

@@ -39,14 +39,20 @@ layout: default-fluid
 			</div>
 		</div>  -->
 
-		<input type="submit" name="submit" value="Display" class="btn btn-default hidden-xs"/>
-		<input type="submit" name="submit" value="Display" class="btn btn-default btn-lg btn-block visible-xs-block"/>
+		<div class="btn-group" role="group" aria-label="...">
+			<button onclick="showMap()" type="button" class="btn btn-default">Map</button>
+			<button onclick="showAdvanced()" type="button" class="btn btn-default">Advanced</button>
+			<button type="submit" class="btn btn-success">Load data</button>
+		</div>
 		</form>
 	</div>
 </div>
 
 <div class="row" id="wrapper-map">
-	<div class="col-md-10 ">
+	<div class="col-md-10" id="advanced-view" style="display:none">
+		<p>Coming soon.</p>
+	</div>
+	<div class="col-md-10" id="map-view">
 		<div id="map-canvas">
 		</div>
 	</div>
