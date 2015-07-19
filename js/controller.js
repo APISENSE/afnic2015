@@ -103,9 +103,15 @@ function displayStats(traces, routers, ping) {
  */
 function parseJSON(data, callback) {
 
-	var numberOfTraces = data.length;
+	// Stats
+	var numberOfTraces = data.length - 1;
 	var numberOfRouters = 0;
 	var avgPing = 0;
+
+	// Loading
+	var callsMade = 0;
+	var callsDone = 0;
+	document.getElementsByClassName("progress")[0].style.display = "block";
 
 	var IPLocationAssoc = {}; // Keep a trace of IP's location
 	var markersToClusterize = [];
@@ -162,12 +168,26 @@ function parseJSON(data, callback) {
 					if (ip in IPLocationAssoc) {
 						addCoordinate(IPLocationAssoc[ip], (i == numberOfEntries));
 					} else {
+						callsMade += 1;
 						calls.push($.getJSON("http://freegeoip.net/json/"+ip, function(data) {
 							var latlng = new google.maps.LatLng(data.latitude, data.longitude);
 							IPLocationAssoc[ip] = latlng;
 							addCoordinate(latlng, (i == numberOfEntries - 1));
-							if (latlng.lat() != 0 && latlng.lng() != 0) {
-								numberOfRouters += 1;
+							
+							// Stats
+							if (latlng.lat() != 0 && latlng.lng() != 0) numberOfRouters += 1;
+
+							// Loading feedback
+							callsDone += 1;
+							var currentPercentage = Math.round((callsDone / callsMade) * 100);
+							var loadingBar = document.getElementById("loading-data");
+							loadingBar.style.display = "block";
+							$('.progress-bar').css('width', currentPercentage+'%').attr('aria-valuenow', currentPercentage); 
+							loadingBar.innerHTML = currentPercentage + "%";
+							if (currentPercentage == 100) {
+								setTimeout(function() {
+								 $(document.getElementsByClassName("progress")[0]).fadeOut("slow");
+								}, 1000 );
 							}
 						}));
 					}

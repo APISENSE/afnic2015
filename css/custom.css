@@ -103,6 +103,10 @@ i.grey { color: #CCC; }
 	border-color: #ccc;
 }
 
+.progress {
+	display: none;
+}
+
 /* MAP */
 
 #wrapper-form {

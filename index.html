@@ -50,18 +50,23 @@ layout: default-fluid
 		<div id="map-canvas">
 		</div>
 	</div>
-	<div class="col-md-2">
+	<div class="col-md-2" id="right-side">
 		<p>
 			<strong>General</strong><br/>
 			Host: facebook.com<br/>
 			Support: WiFi / GSM
 		</p>
+
 		<p>
 			<strong>Statistics</strong><br/>
 			<span class="badge" id="nb-of-traces">X</span> Traces collected<br/>
 			<span class="badge" id="nb-of-routers">X</span> Routers reached<br/>
 			<span class="badge" id="avg-ping">X</span> Avg. latency (ms)
 		</p>
+
+		<div class="progress" style="margin: 5px 15px 5px 0;">
+		  <div id="loading-data" class="progress-bar" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" style="width:0%">0%</div>
+		</div>
 	</div>
 </div>
 
