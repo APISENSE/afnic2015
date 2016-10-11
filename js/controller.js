@@ -247,7 +247,7 @@ function initializeNetworkMap() {
 		url: url,
 		success: function(data){
 			parseJSON(data, function(markersToClusterize) {
-				var mcOptions = {gridSize: 50, maxZoom: 7};
+				var mcOptions = {gridSize: 50, maxZoom: 7, imagePath: 'https://cdn.rawgit.com/googlemaps/js-marker-clusterer/gh-pages/images/m'};
 				new MarkerClusterer(map, markersToClusterize, mcOptions); // Create cluster map
 				// var oms = new OverlappingMarkerSpiderfier(map);			
 			});

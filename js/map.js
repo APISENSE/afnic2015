@@ -1,4 +1,4 @@
-var url = "http://apisense.io/api/v1/oPNPvJbwJ5Sv9qrBGZJ1/data";
+var url = "https://honeycomb.apisense.io/api/v1/crop/oPNPvJbwJ5Sv9qrBGZJ1/data";
 
 var map;
 var lastInfoWindow;
@@ -117,7 +117,7 @@ function loadScript() {
 
 	var script_cluster = document.createElement('script');
 	script_cluster.type = 'text/javascript';
-	script_cluster.src = 'http://google-maps-utility-library-v3.googlecode.com/svn/trunk/markerclusterer/src/markerclusterer.js';
+	script_cluster.src = 'https://cdn.rawgit.com/googlemaps/js-marker-clusterer/gh-pages/src/markerclusterer.js';
 	document.body.appendChild(script_cluster);
 }
 
