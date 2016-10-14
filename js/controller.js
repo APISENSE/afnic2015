@@ -2,12 +2,16 @@
 var strokeWeight = 2;
 var strokeOpacity = 0.3;
 
+// Selector
+var traceroutePicker = $('.selectpicker')
+var tracerouteMapping = {}
+
 // Display
 $(document).ready(function() {
 	var browerHeight = $(window).height(),
 		navHeight = $('.navbar-aps').height(),
-		formHeight = $('#wrapper-form').height(),
-		footerHeight = $('.footer').height()+60;
+		formHeight = $('#mapFilterForm').height() + 10,
+		footerHeight = $('.footer').height() + 60;
 
 	// Set map height
 	if(browerHeight>640) {
@@ -16,18 +20,58 @@ $(document).ready(function() {
 	}
 
 	$(".close-alert").click(function() {
-  		$(".alert").hide();
+		$(".alert").hide();
 	});
+
+	// Initialize traceroutePicker
+	setTraceroutePicker();
 });
+
 
 // Deciders
 $("#mapFilterForm").submit( function() {
-	// "input:radio[name=mapType]:checked" ).val()
-	initialize();
-	initializeNetworkMap();
-	$('#advanced-btn').removeClass("disabled");
+	initialize(); // Reset the map
+
+	var selectedItems = traceroutePicker.find(":selected")
+	var numberOfSelectedItems = selectedItems.length // Draw only required items
+
+	var mergedData = []
+	$.each(selectedItems, function() {
+		var itemID = $(this)[0].value
+		mergedData.push(tracerouteMapping[itemID]);
+	});
+	draw(mergedData);
+
 	return false;
  });
+
+// Initialiaze values in the picker
+function setTraceroutePicker() {
+	$.ajax({
+		type: "GET",
+		url: url,
+		success: function(data){
+			$.each(data, function(i, item) {
+				if (data[i].hasOwnProperty('body')) { // Parse JSON
+					var info = data[i].body[0];
+
+ 					let date = info.recordDate
+ 					let formattedDate = moment(date).format("LLL");
+
+ 					// Update picker with available options
+		            traceroutePicker
+		            	.append('<option value="'+i+'">' + formattedDate + ' - ' + info.scan_ping +'ms</option>')
+   						.selectpicker('refresh');
+
+   					// Store data to the associated id
+					tracerouteMapping[i] = data[i]; 
+				}
+			});
+
+			traceroutePicker.selectpicker('selectAll');
+		}
+	});
+}
 
 /* 
  * Set google map position to (latitude, longitude)
@@ -91,20 +135,10 @@ function drawPathBetween(start, end) {
 	flightPath.setMap(map);
 }
 
-
-function showMap() {
-	$("#map-view").css("display","block");
-	$("#advanced-view").css("display","none");
-}
-
-function showAdvanced() {
-	$("#map-view").css("display","none");
-	$("#advanced-view").css("display","block");
-}
-
-function displayStats(traces, routers, ping) {
+function displayStats(traces, routers, avgTTL, ping) {
 	$('#nb-of-traces').text(traces);
 	$('#nb-of-routers').text(routers);
+	$('#avg-ttl').text(avgTTL);
 	$('#avg-ping').text(ping);
 }
 
@@ -114,20 +148,20 @@ function displayStats(traces, routers, ping) {
 function parseJSON(data, callback) {
 
 	// Stats
-	var numberOfTraces = data.length - 1;
-	var numberOfRouters = 0;
-	var avgPing = 0;
+	var numberOfTraces = data.length;
+	var sumPing = 0;
+	var sumTTL = 0;
 
 	// Loading
 	var callsMade = 0;
 	var callsDone = 0;
-	document.getElementsByClassName("progress")[0].style.display = "block";
-	$('.progress-bar').css('width', '0%').attr('aria-valuenow', 0).text('0%'); 
+	var loadingBtn = $("#loading-data")
 
 	var IPLocationAssoc = {}; // Keep a trace of IP's location
 	var markersToClusterize = [];
 
 	if (data.length == 0) {
+		displayStats("?","?","?","?");
 		document.getElementById("feedback").style.display = "block";
 	} else {
 		document.getElementById("feedback").style.display = "none";
@@ -170,8 +204,6 @@ function parseJSON(data, callback) {
 				var ping = scan_trace[i].ping;
 				var ttl = scan_trace[i].ttl;
 
-				avgPing += ping;
-
 				trace_output += "["+ttl+"] " + ip + " (" + ping + "ms)<br/>"; // Build output
 
 				// Search inside IP's location we already got
@@ -184,29 +216,27 @@ function parseJSON(data, callback) {
 							var latlng = new google.maps.LatLng(data.latitude, data.longitude);
 							IPLocationAssoc[ip] = latlng;
 							addCoordinate(latlng, (i == numberOfEntries - 1));
-							
-							// Stats
-							if (latlng.lat() != 0 && latlng.lng() != 0) numberOfRouters += 1;
 
 							// Loading feedback
 							callsDone += 1;
 							var currentPercentage = Math.round((callsDone / callsMade) * 100);
-							$('.progress-bar').css('width', currentPercentage+'%').attr('aria-valuenow', currentPercentage).text(currentPercentage+'%'); 
+							loadingBtn.text(currentPercentage + "%");
 							if (currentPercentage == 100) {
-								setTimeout(function() {
-								 $(document.getElementsByClassName("progress")[0]).fadeOut("slow");
-								}, 1000 );
+								loadingBtn.text("Reload");
 							}
 						}));
 					}
 				}
 			});
 
+			sumPing += scan_ping
+			sumTTL += scan_ttl
+
 			// Draw first link between position and first router found
 			$.when.apply($, calls).then(function() {
 				if (first_router) drawPathBetween(myLatlng, first_router);
 				drawRequestsPath(requestsPlanCoordinates);
-				displayStats(numberOfTraces, numberOfRouters, Math.round(avgPing / numberOfRouters));
+				displayStats(numberOfTraces, sumTTL, Math.round(sumTTL / data.length), Math.round(sumPing / data.length));
 		    });
 
 			// Build current location marker and infoWindow associated
@@ -238,19 +268,9 @@ function parseJSON(data, callback) {
 	callback(markersToClusterize);	
 }
 
-/* 
- * Retrieve data from Honeycomb
- */
-function initializeNetworkMap() {
-	$.ajax({
-		type: "GET",
-		url: url,
-		success: function(data){
-			parseJSON(data, function(markersToClusterize) {
-				var mcOptions = {gridSize: 50, maxZoom: 7, imagePath: 'https://cdn.rawgit.com/googlemaps/js-marker-clusterer/gh-pages/images/m'};
-				new MarkerClusterer(map, markersToClusterize, mcOptions); // Create cluster map
-				// var oms = new OverlappingMarkerSpiderfier(map);			
-			});
-		}
+function draw(data) {
+	parseJSON(data, function(markersToClusterize) {
+		var mcOptions = {gridSize: 50, maxZoom: 7, imagePath: 'https://cdn.rawgit.com/googlemaps/js-marker-clusterer/gh-pages/images/m'};
+		new MarkerClusterer(map, markersToClusterize, mcOptions); // Create cluster map	
 	});
 }
