@@ -10,7 +10,7 @@ baseurl: "/afnic2015"
 url: "http://apisense.github.io"
 
 apisense: APISENSE
-url_apisense: http://www.apisense.com
+url_apisense: https://apisense.io
 
 bee: Bee
 url_bee: https://play.google.com/apps/testing/com.apisense.bee
@@ -33,8 +33,10 @@ team:
     twitter_username: chrissom_
     linkedin_url: https://www.linkedin.com/in/christopheribeiro/en
   - name: Julien Duribreux
-    img_url: https://pbs.twimg.com/profile_images/378800000842441427/4969812dc42a87e04f9f2840fb97f2e6_400x400.jpeg
+    img_url: https://media.licdn.com/mpr/mpr/shrinknp_400_400/AAEAAQAAAAAAAAgiAAAAJDE2YTZkZWJhLTAxYmQtNDg0Mi1iOTE0LTdkZjhjMDM4ZjJlYQ.jpg
     twitter_username: JulienDuribreux
+    linkedin_url: https://www.linkedin.com/in/julien-duribreux-601428116
   - name: Antoine Veuiller
+    linkedin_url: https://www.linkedin.com/in/antoine-veuiller-773aba121
 
 
